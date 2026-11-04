@@ -23,11 +23,16 @@ export default function PaymentPage() {
     setReady(true);
   }, [router]);
 
+  // Функция для тестового обхода оплаты
+  const goToMockResult = () => {
+    const mockId = 'MOCK_BYPASS_' + Date.now();
+    localStorage.setItem('para_payment_id', mockId);
+    router.push(`/result?paymentId=${mockId}`);
+  };
+
   if (!ready) return <main className="min-h-screen flex items-center justify-center text-inkSoft bg-romantic-glow">Загрузка…</main>;
 
-  // ИСПРАВЛЕННЫЙ HTML-КОД ФОРМЫ:
-  // 1. PaymentAmount=199 (фиксированная сумма)
-  // 2. PaymentAmountIsReadonly=true (нельзя изменить)
+  // HTML-код вашей формы
   const iframeHtml = `
     <div id="intellectmoney-payform" style="min-height: 550px; width: 100%;">
       <iframe width="100%" height="100%" style="min-height: 550px; border: none;" frameBorder="0" src="https://merchant.intellectmoney.ru/v2/ru/prepareForm/?EshopId=473381&ServiceName=%D0%9F%D1%81%D0%B8%D1%85%D0%BE%D0%BB%D0%BE%D0%B3%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B8%D0%B9%20%D0%BE%D1%82%D1%87%D1%91%D1%82%20%D0%B4%D0%BB%D1%8F%20%D0%BF%D0%B0%D1%80%D1%8B&ServiceNameAuthor=0&PaymentAmount=199&PaymentCurrency=RUB&PaymentAmountIsReadonly=true&ButtonName=0&OpenNewWindow=true&UserFullName=&UserEmail=true&PhoneNumber=&SuccessUrl=https%3A%2F%2Fpara.layero.app%2Fresult&MerchantReceipt=&Comment=&CommentTip=&Hash=bb6caa1304e0d0479fa9e8676d396322&PayerData=&Email="></iframe>
@@ -50,6 +55,18 @@ export default function PaymentPage() {
           className="w-full bg-white rounded-2xl overflow-hidden border border-ink/5 shadow-inner" 
           dangerouslySetInnerHTML={{ __html: iframeHtml }} 
         />
+
+        {/* --- ТЕСТОВАЯ КНОПКА --- */}
+        <div className="mt-10 pt-6 border-t border-ink/10">
+          <button 
+            onClick={goToMockResult}
+            className="text-sm text-inkSoft hover:text-terra transition-colors flex items-center justify-center gap-2 mx-auto"
+          >
+            🧪 Тестовый доступ: посмотреть результат бесплатно
+          </button>
+        </div>
+        {/* ----------------------- */}
+
       </div>
     </main>
   );
