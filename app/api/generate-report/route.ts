@@ -15,14 +15,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Нет данных' }, { status: 400 });
     }
 
-    // 🔥 ВАЖНО: Пропускаем проверку оплаты, если ID начинается с "MOCK_"
-    // Это позволяет использовать тестовую кнопку обхода оплаты
+    // Пропускаем проверку оплаты, если ID тестовый (начинается с MOCK_)
     if (!String(paymentId).startsWith('MOCK_')) {
       const shopId = process.env.YOOKASSA_SHOP_ID;
       const secretKey = process.env.YOOKASSA_SECRET_KEY;
       
-      // Если вы перешли на IntellectMoney, здесь нужно будет добавить их проверку.
-      // Пока оставляем проверку ЮKassa для реальных платежей.
       if (shopId && secretKey) {
         const verify = await fetch(`https://api.yookassa.ru/v3/payments/${paymentId}`, {
           headers: {
@@ -58,16 +55,15 @@ export async function POST(req: NextRequest) {
 
 const SYSTEM_PROMPT = `Ты — психолог. Пиши разбор для пары в формате JSON.
 ПРАВИЛА:
-- Пиши компактно, чтобы не превышать лимиты.
+- Пиши компактно.
 - overall_summary: ровно 2 абзаца.
-- personal_insights: по 1-2 предложения на партнёра.
-- green_flags, red_flags, recommendations: короткие тезисы (до 10 слов).
+- personal_insights: по 1-2 предложения.
+- green_flags, red_flags, recommendations: короткие тезисы.
 - Никакого markdown, только чистый JSON.
-- Внутри строк ЗАПРЕЩЕНЫ переносы строк. Используй пробелы.
-
+- Внутри строк ЗАПРЕЩЕНЫ переносы строк (Enter). Используй пробелы.
 ФОРМАТ:
 {
-  "headline": "короткая фраза",
+  "headline": "фраза",
   "overall_summary": "2 абзаца",
   "green_flags": ["...", "..."],
   "red_flags": ["...", "..."],
@@ -100,15 +96,12 @@ async function callGigaChat(scores: PairScore, answers: PairAnswers) {
   const userPrompt = `Совместимость: ${scores.overall}/100. Гармония: ${scores.harmony}/100.
 Сферы:
 ${catLines}
-
 Тревоги: ${scores.redFlags.join('; ') || 'нет'}
 Критические: ${scores.criticalWarnings.join('; ') || 'нет'}
-
 П1 закрытые: ${closedToText(answers.partner1.closed)}
 П1 открытые: ${openToText(answers.partner1.open) || 'нет'}
 П2 закрытые: ${closedToText(answers.partner2.closed)}
 П2 открытые: ${openToText(answers.partner2.open) || 'нет'}
-
 Напиши разбор, цитируя открытые ответы.`;
 
   try {
@@ -116,15 +109,8 @@ ${catLines}
       [{ role: 'system', content: SYSTEM_PROMPT }, { role: 'user', content: userPrompt }],
       { temperature: 0.3, max_tokens: 1500 }
     );
-
-    console.log('\n🤖 СЫРОЙ ОТВЕТ GIGACHAT (длина:', raw.length, 'символов)\n');
-
     const parsed = robustParseJSON(raw);
-
-    if (!parsed.headline || !parsed.overall_summary) {
-       throw new Error('Структура JSON не соответствует ожиданиям.');
-    }
-
+    if (!parsed.headline || !parsed.overall_summary) throw new Error('Структура JSON неверна.');
     return parsed;
   } catch (e) {
     console.error('❌ GigaChat generation failed:', e);
@@ -132,26 +118,19 @@ ${catLines}
   }
 }
 
-// === УМНЫЙ ЛЕКАРЬ JSON (Auto-Healer) ===
 function robustParseJSON(raw: string) {
   let cleaned = raw.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
   const start = cleaned.indexOf('{');
   const end = cleaned.lastIndexOf('}');
-  
-  if (start >= 0) {
-    cleaned = end > start ? cleaned.slice(start, end + 1) : cleaned.slice(start);
-  }
+  if (start >= 0) cleaned = end > start ? cleaned.slice(start, end + 1) : cleaned.slice(start);
 
   try { return JSON.parse(cleaned); } catch (e) {}
 
   let sanitized = cleaned.replace(/[\n\r\t]+/g, ' ');
   try { return JSON.parse(sanitized); } catch (e) {}
 
-  console.warn('⚠️ JSON оборван. Запускаю авто-восстановление...');
-  let inString = false;
-  let escapeNext = false;
+  let inString = false, escapeNext = false;
   const stack: string[] = [];
-
   for (let i = 0; i < sanitized.length; i++) {
     const char = sanitized[i];
     if (escapeNext) { escapeNext = false; continue; }
@@ -162,46 +141,31 @@ function robustParseJSON(raw: string) {
       else if (char === '}' || char === ']') stack.pop();
     }
   }
-
   let healed = sanitized;
   if (inString) healed += '"';
   healed = healed.replace(/,\s*$/, '');
-
   while (stack.length > 0) {
     const open = stack.pop();
     if (open === '{') healed += '}';
     if (open === '[') healed += ']';
   }
-
-  try {
-    return JSON.parse(healed);
-  } catch (finalError) {
-    throw new Error('Не удалось восстановить JSON после всех попыток: ' + finalError);
-  }
+  try { return JSON.parse(healed); } catch (finalError) { throw new Error('Не удалось восстановить JSON'); }
 }
 
-// === ЗАГЛУШКА ===
 function mockReport(scores: PairScore) {
   const strongKeys = (Object.keys(scores.combined) as CategoryKey[]).filter((k) => scores.combined[k] >= 70);
   const weakKeys = (Object.keys(scores.combined) as CategoryKey[]).filter((k) => scores.combined[k] < 50);
   const divergedKeys = (Object.keys(scores.divergence) as CategoryKey[]).filter((k) => scores.divergence[k] >= 25);
 
-  const strong = strongKeys.map((k) => CATEGORIES[k].title);
-  const weak = weakKeys.map((k) => CATEGORIES[k].title);
-  const diverged = divergedKeys.map((k) => CATEGORIES[k].title);
-
   return {
-    headline: scores.overall >= 70 ? 'У вас крепкая связь — с точками роста' : scores.overall >= 45 ? 'Есть любовь. Есть над чем поработать' : 'Отношениям нужна бережная поддержка',
-    overall_summary: `Это демонстрационный отчёт. Совместимость — ${scores.overall}/100, гармония — ${scores.harmony}/100.\n\nСильные стороны: ${strong.join(', ') || 'пока не выявлены'}.\n\nПроблемные зоны: ${weak.join(', ') || 'не обнаружены'}.\n\nРасхождения: ${diverged.join(', ') || 'нет'}.`,
-    green_flags: strong.length ? strong.map((s) => `Сфера «${s}» — ваша опора`) : ['Пока не выявлены явно'],
+    headline: scores.overall >= 70 ? 'У вас крепкая связь' : scores.overall >= 45 ? 'Есть любовь. Есть над чем поработать' : 'Отношениям нужна поддержка',
+    overall_summary: `Совместимость — ${scores.overall}/100, гармония — ${scores.harmony}/100. Сильные стороны: ${strongKeys.map((k) => CATEGORIES[k].title).join(', ') || 'не выявлены'}. Проблемные зоны: ${weakKeys.map((k) => CATEGORIES[k].title).join(', ') || 'не обнаружены'}.`,
+    green_flags: strongKeys.map((k) => `Сфера «${CATEGORIES[k].title}» — ваша опора`),
     red_flags: scores.redFlags,
     divergences: divergedKeys.map((k) => ({ title: CATEGORIES[k].title, description: `Вы видите эту сферу по-разному.`, partner1_sees: `Оценка П1: ${scores.partner1[k]}`, partner2_sees: `Оценка П2: ${scores.partner2[k]}` })),
-    personal_insights: [
-      { partner: 1, insight: 'В демо-режиме личные ответы не анализируются.' },
-      { partner: 2, insight: 'В демо-режиме личные ответы не анализируются.' },
-    ],
+    personal_insights: [{ partner: 1, insight: 'В демо-режиме личные ответы не анализируются.' }, { partner: 2, insight: 'В демо-режиме личные ответы не анализируются.' }],
     problem_areas: weakKeys.map((k) => ({ title: CATEGORIES[k].title, description: `Средняя оценка ${scores.combined[k]}/100.` })),
-    recommendations: ['Выделяйте 15 минут в день на разговор без телефонов', 'Говорите через «я-сообщения»', 'Раз в неделю — совместное занятие'],
-    next_steps: 'Начните с одного честного разговора о том, что вас беспокоит.',
+    recommendations: ['Выделяйте 15 минут в день на разговор', 'Говорите через «я-сообщения»', 'Раз в неделю — совместное занятие'],
+    next_steps: 'Начните с одного честного разговора.',
   };
 }
