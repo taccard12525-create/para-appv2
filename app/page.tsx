@@ -2,18 +2,14 @@ import Link from 'next/link';
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-romantic-glow">
-      <nav className="container-wide flex items-center justify-between py-6">
+    <main className="min-h-screen">
+      <nav className="container-wide flex items-center justify-between py-6 relative z-10">
         <span className="font-serif text-2xl tracking-tight">пара<span className="text-terra">.</span></span>
         <Link href="/quiz" className="text-sm text-inkSoft hover:text-terra transition-colors">Начать →</Link>
       </nav>
 
-      <section className="container-narrow text-center pt-20 pb-24 relative">
-        {/* Декоративные элементы на фоне */}
-        <div className="absolute top-10 left-10 w-24 h-24 bg-rose/30 rounded-full blur-2xl animate-float" />
-        <div className="absolute bottom-20 right-10 w-32 h-32 bg-blush/40 rounded-full blur-3xl animate-float" style={{ animationDelay: '1s' }} />
-
-        <div className="inline-flex items-center gap-2 text-xs uppercase tracking-widest text-inkSoft bg-white/50 backdrop-blur-sm rounded-full px-4 py-1.5 mb-8 border border-white/80">
+      <section className="container-narrow text-center pt-20 pb-24 relative z-10">
+        <div className="inline-flex items-center gap-2 text-xs uppercase tracking-widest text-inkSoft bg-white/50 backdrop-blur-sm rounded-full px-4 py-1.5 mb-8 border border-white/80 shadow-sm">
           <span className="w-1.5 h-1.5 rounded-full bg-terra" />
           Психология отношений
         </div>
@@ -43,16 +39,17 @@ export default function Home() {
           { t: 'Совместимость', d: 'Процент совместимости и расхождения по 7 сферам: от коммуникации до ценностей и границ.' },
         ].map((f) => (
           <div key={f.t} className="card hover:-translate-y-1 transition-transform duration-300">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-blush/20 rounded-bl-full -z-10" />
             <h3 className="font-serif text-2xl mb-3">{f.t}</h3>
             <p className="text-inkSoft leading-relaxed">{f.d}</p>
           </div>
         ))}
       </section>
 
-      <section className="container-narrow pb-24">
+      <section className="container-narrow pb-24 relative z-10">
         <div className="bg-ink text-cream rounded-[40px] p-12 md:p-16 text-center shadow-soft relative overflow-hidden">
-          {/* Внутреннее свечение в темной карточке */}
           <div className="absolute top-0 right-0 w-64 h-64 bg-terra/20 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 left-0 w-48 h-48 bg-rose/20 rounded-full blur-2xl" />
           
           <h2 className="font-serif text-4xl md:text-5xl mb-6 relative z-10">Начните <span className="italic text-rose">диалог</span></h2>
           <p className="text-cream/70 mb-10 max-w-lg mx-auto relative z-10">
@@ -64,7 +61,7 @@ export default function Home() {
         </div>
       </section>
 
-      <footer className="border-t border-ink/5">
+      <footer className="border-t border-ink/5 relative z-10 bg-white/30 backdrop-blur-sm">
         <div className="container-wide py-10 flex flex-col md:flex-row justify-between gap-4 text-sm text-inkSoft">
           <span>© {new Date().getFullYear()} пара. Сервис не заменяет консультацию психолога.</span>
           <div className="flex gap-6">
