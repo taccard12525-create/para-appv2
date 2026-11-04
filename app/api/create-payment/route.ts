@@ -3,14 +3,17 @@ import crypto from 'crypto';
 
 export async function POST(req: NextRequest) {
   try {
-    // Тело запроса больше не содержит answers — они лежат в localStorage
-    // и передаются напрямую в /api/generate-report. Здесь тело нам не нужно.
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+    // 🔥 УМНОЕ ОПРЕДЕЛЕНИЕ ДОМЕНА
+    // Берем домен прямо из заголовков запроса, на котором запущен сайт
+    const host = req.headers.get('host') || 'localhost:3000';
+    const protocol = req.headers.get('x-forwarded-proto') || (host.includes('localhost') ? 'http' : 'https');
+    const baseUrl = `${protocol}://${host}`;
 
     // === MOCK-режим: имитация успешной оплаты для тестов ===
     if (process.env.MOCK_MODE === 'true') {
       const mockId = 'MOCK_' + Date.now();
       return NextResponse.json({
+        // Теперь ссылка всегда будет правильной: https://ваш-домен/result...
         confirmationUrl: `${baseUrl}/result?paymentId=${mockId}`,
         paymentId: mockId,
       });
@@ -18,8 +21,9 @@ export async function POST(req: NextRequest) {
 
     const shopId = process.env.YOOKASSA_SHOP_ID;
     const secretKey = process.env.YOOKASSA_SECRET_KEY;
+    
     if (!shopId || !secretKey) {
-      console.error('❌ YOOKASSA_SHOP_ID или YOOKASSA_SECRET_KEY не заданы в .env.local');
+      console.error('❌ YOOKASSA_SHOP_ID или YOOKASSA_SECRET_KEY не заданы');
       return NextResponse.json(
         { error: 'ЮKassa не настроена' },
         { status: 500 },
@@ -39,7 +43,7 @@ export async function POST(req: NextRequest) {
         capture: true,
         confirmation: {
           type: 'redirect',
-          return_url: `${baseUrl}/result`,
+          return_url: `${baseUrl}/result`, // Тоже используем умный URL
         },
         description: 'Психологический отчёт для пары',
       }),
