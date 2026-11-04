@@ -65,22 +65,29 @@ export default function QuizPage() {
   // === INTRO ===
   if (phase === 'intro') {
     return (
-      <main className="min-h-screen flex flex-col items-center justify-center px-6 py-12">
-        <div className="max-w-md w-full text-center animate-fadeUp">
-          <div className="text-7xl mb-8">🤍</div>
+      <main className="min-h-screen flex flex-col items-center justify-center px-6 py-12 bg-romantic-glow">
+        <div className="max-w-md w-full text-center animate-fadeUp relative">
+          {/* Романтичное свечение на фоне */}
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-10 w-32 h-32 bg-rose/30 rounded-full blur-2xl -z-10" />
+          
+          <div className="text-7xl mb-8 animate-float">🤍</div>
+          
           <h1 className="font-serif text-4xl md:text-5xl leading-tight mb-6">
-            Познакомимся<br/>с вашими отношениями
+            Познакомимся<br/>с вашими <span className="italic text-terra">отношениями</span>
           </h1>
+          
           <p className="text-inkSoft text-lg leading-relaxed mb-10">
-            Сейчас отвечает <b className="text-ink">первый партнёр</b> — тот, кто держит устройство.
+            Сейчас отвечает <b className="text-ink font-medium">первый партнёр</b> — тот, кто держит устройство.
             Затем оно переходит второму.
           </p>
-          <div className="bg-sand rounded-2xl p-6 text-left mb-10 space-y-3 text-sm text-ink/80">
-            <div className="flex gap-3"><span className="text-clay">•</span><span>{total} вопросов, около 7–8 минут</span></div>
-            <div className="flex gap-3"><span className="text-clay">•</span><span>Отвечайте честно — это только для вас двоих</span></div>
-            <div className="flex gap-3"><span className="text-clay">•</span><span>В конце есть вопросы, где можно писать свободно</span></div>
+          
+          <div className="bg-white/60 backdrop-blur-sm border border-white/80 rounded-3xl p-6 text-left mb-10 space-y-4 text-sm text-ink/80 shadow-soft">
+            <div className="flex gap-3 items-center"><span className="text-terra">✦</span><span>{total} вопросов, около 7–8 минут</span></div>
+            <div className="flex gap-3 items-center"><span className="text-terra">✦</span><span>Отвечайте честно — это только для вас двоих</span></div>
+            <div className="flex gap-3 items-center"><span className="text-terra">✦</span><span>В конце есть вопросы, где можно писать свободно</span></div>
           </div>
-          <button onClick={() => setPhase('quiz')} className="btn-primary w-full">
+          
+          <button onClick={() => setPhase('quiz')} className="btn-primary w-full text-lg">
             Начать · Партнёр 1
           </button>
         </div>
@@ -91,15 +98,18 @@ export default function QuizPage() {
   // === HANDOFF ===
   if (phase === 'handoff') {
     return (
-      <main className="min-h-screen flex flex-col items-center justify-center px-6 py-12">
-        <div className="max-w-md w-full text-center animate-fadeUp">
-          <div className="text-7xl mb-8">🤝</div>
+      <main className="min-h-screen flex flex-col items-center justify-center px-6 py-12 bg-romantic-glow">
+        <div className="max-w-md w-full text-center animate-fadeUp relative">
+          <div className="text-7xl mb-8 animate-float" style={{ animationDelay: '0.5s' }}>🤝</div>
+          
           <h1 className="font-serif text-4xl md:text-5xl leading-tight mb-6">Спасибо</h1>
+          
           <p className="text-inkSoft text-lg leading-relaxed mb-10">
-            Теперь передайте устройство партнёру.
+            Теперь передайте устройство тому, кого <span className="italic text-terra">любите</span>.<br/>
             Ему предстоит ответить на те же вопросы — но уже со своей стороны.
           </p>
-          <button onClick={startPartner2} className="btn-primary w-full">
+          
+          <button onClick={startPartner2} className="btn-primary w-full text-lg">
             Партнёр 2 готов →
           </button>
         </div>
@@ -110,9 +120,9 @@ export default function QuizPage() {
   // === FINAL ===
   if (phase === 'final') {
     return (
-      <main className="min-h-screen flex flex-col items-center justify-center px-6 py-12">
+      <main className="min-h-screen flex flex-col items-center justify-center px-6 py-12 bg-romantic-glow">
         <div className="max-w-md w-full text-center animate-fadeUp">
-          <div className="text-7xl mb-8">✨</div>
+          <div className="text-7xl mb-8 animate-float">✨</div>
           <h1 className="font-serif text-4xl md:text-5xl leading-tight mb-6">Анкета заполнена</h1>
           <p className="text-inkSoft text-lg leading-relaxed mb-10">
             Сейчас мы объединим ваши ответы, найдём совпадения и расхождения,
@@ -132,16 +142,16 @@ export default function QuizPage() {
   const openCharCount = openValue.trim().length;
 
   return (
-    <main className="min-h-screen flex flex-col">
+    <main className="min-h-screen flex flex-col bg-romantic-glow">
       <div className="container-narrow pt-6 pb-4 flex justify-between items-center">
         <button onClick={back} disabled={index === 0} className="text-sm text-inkSoft hover:text-ink disabled:opacity-30 transition-colors">← Назад</button>
-        <div className="text-xs uppercase tracking-widest text-inkSoft bg-sand rounded-full px-3 py-1">
+        <div className="text-xs uppercase tracking-widest text-inkSoft bg-white/50 backdrop-blur-sm border border-white/80 rounded-full px-3 py-1 shadow-sm">
           Партнёр {partner === 'partner1' ? '1' : '2'}
         </div>
       </div>
 
       <div className="container-narrow pb-6">
-        <div className="progress-track"><div className="progress-fill" style={{ width: `${progress}%` }} /></div>
+        <div className="progress-track bg-white/50"><div className="progress-fill" style={{ width: `${progress}%` }} /></div>
         <div className="flex justify-between text-xs text-inkSoft mt-2">
           <span>{isOpen ? 'Личные размышления' : 'Ваши отношения'}</span>
           <span>{index + 1} / {total}</span>
@@ -154,7 +164,7 @@ export default function QuizPage() {
             {q.text}
           </h1>
           {isOpen && q.hint && (
-            <p className="text-inkSoft mb-8 text-sm">{q.hint}</p>
+            <p className="text-inkSoft mb-8 text-sm italic">{q.hint}</p>
           )}
           {!isOpen && <div className="mb-8" />}
 
@@ -172,8 +182,8 @@ export default function QuizPage() {
                   onClick={() => setClosed({ ...closed, [q.id]: v })}
                   className={`w-full text-left px-6 py-4 rounded-2xl border transition-all ${
                     closed[q.id] === v
-                      ? 'border-ink bg-ink text-cream'
-                      : 'border-ink/15 bg-white hover:border-ink/40'
+                      ? 'border-ink bg-ink text-cream shadow-md'
+                      : 'border-white/60 bg-white/60 backdrop-blur-sm hover:border-ink/30 hover:bg-white'
                   }`}
                 >
                   {l}
@@ -190,8 +200,8 @@ export default function QuizPage() {
                   onClick={() => setClosed({ ...closed, [q.id]: o.value })}
                   className={`w-full text-left px-6 py-4 rounded-2xl border transition-all ${
                     closed[q.id] === o.value
-                      ? 'border-ink bg-ink text-cream'
-                      : 'border-ink/15 bg-white hover:border-ink/40'
+                      ? 'border-ink bg-ink text-cream shadow-md'
+                      : 'border-white/60 bg-white/60 backdrop-blur-sm hover:border-ink/30 hover:bg-white'
                   }`}
                 >
                   {o.label}
@@ -206,8 +216,8 @@ export default function QuizPage() {
                 value={openValue}
                 onChange={(e) => setOpen({ ...open, [q.id]: e.target.value })}
                 placeholder="Пишите свободно. Это прочитает только нейросеть — и использует для вашего персонального разбора."
-                className="w-full bg-white border border-ink/15 rounded-2xl p-6 text-lg leading-relaxed
-                           focus:border-ink outline-none transition-colors min-h-[200px] resize-none"
+                className="w-full bg-white/70 backdrop-blur-sm border border-white/80 rounded-2xl p-6 text-lg leading-relaxed
+                           focus:border-ink focus:bg-white outline-none transition-colors min-h-[200px] resize-none shadow-sm"
                 maxLength={1200}
               />
               <div className="flex justify-between text-xs text-inkSoft mt-2 px-1">

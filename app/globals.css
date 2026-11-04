@@ -12,22 +12,41 @@ html, body { -webkit-font-smoothing: antialiased; }
 .container-narrow { max-width: 780px; margin-left: auto; margin-right: auto; padding-left: 24px; padding-right: 24px; }
 .container-wide   { max-width: 1120px; margin-left: auto; margin-right: auto; padding-left: 24px; padding-right: 24px; }
 
+/* Кнопки */
 .btn-primary {
-  @apply inline-flex items-center justify-center gap-2 rounded-full bg-ink text-cream px-7 py-4 font-medium
-         transition-all duration-200 hover:bg-clay hover:text-ink active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed;
+  @apply inline-flex items-center justify-center gap-2 rounded-full bg-ink text-cream px-8 py-4 font-medium
+         transition-all duration-300 hover:bg-terra hover:shadow-soft hover:-translate-y-0.5 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed;
 }
 .btn-ghost {
-  @apply inline-flex items-center justify-center gap-2 rounded-full border border-ink/20 text-ink px-6 py-3
-         transition-colors hover:bg-ink/5;
+  @apply inline-flex items-center justify-center gap-2 rounded-full border border-ink/15 text-ink px-6 py-3
+         transition-all duration-300 hover:bg-sand hover:border-ink/30;
 }
 
-.card { @apply bg-white rounded-3xl p-8 shadow-[0_1px_0_rgba(0,0,0,0.04),0_8px_40px_-12px_rgba(80,60,40,0.08)]; }
+/* Карточки со стеклянным эффектом */
+.card { 
+  @apply bg-white/80 backdrop-blur-sm rounded-[32px] p-8 shadow-soft border border-white/60; 
+}
 
 .progress-track { @apply h-1.5 w-full bg-sand rounded-full overflow-hidden; }
-.progress-fill  { @apply h-full bg-ink transition-all duration-500 ease-out; }
+.progress-fill  { @apply h-full bg-gradient-to-r from-rose to-clay transition-all duration-500 ease-out; }
+
+/* Романтичный фон */
+.bg-romantic-glow {
+  background-image: 
+    radial-gradient(ellipse at top right, rgba(227, 194, 194, 0.4) 0%, transparent 50%),
+    radial-gradient(ellipse at bottom left, rgba(242, 220, 213, 0.6) 0%, transparent 50%);
+}
+
+/* Анимация парения */
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
+}
+.animate-float { animation: float 6s ease-in-out infinite; }
 
 @keyframes fadeUp {
-  from { opacity: 0; transform: translateY(12px); }
+  from { opacity: 0; transform: translateY(15px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-.animate-fadeUp { animation: fadeUp 0.5s ease forwards; }
+.animate-fadeUp { animation: fadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
