@@ -6,71 +6,58 @@ import { useRouter } from 'next/navigation';
 export default function PaymentPage() {
   const router = useRouter();
   const [ready, setReady] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const p1 = localStorage.getItem('para_p1');
     const p2 = localStorage.getItem('para_p2');
-    if (!p1 || !p2) { router.replace('/quiz'); return; }
+    
+    // Если тест не пройден, отправляем на страницу опросника
+    if (!p1 || !p2) { 
+      router.replace('/quiz'); 
+      return; 
+    }
+
+    // ВАЖНО: Генерируем временный ID, так как форма IntellectMoney 
+    // не передает ID платежа в SuccessUrl. Это нужно, чтобы страница /result не упала.
+    const tempId = 'MOCK_INTELLECT_' + Date.now();
+    localStorage.setItem('para_payment_id', tempId);
+    
     setReady(true);
   }, [router]);
 
-  const pay = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await fetch('/api/create-payment', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ok: true }),
-      });
-      if (!res.ok) throw new Error('Не удалось создать платёж');
-      const data = await res.json();
-      localStorage.setItem('para_payment_id', data.paymentId);
-      window.location.href = data.confirmationUrl;
-    } catch (e: any) {
-      setError(e.message || 'Ошибка');
-      setLoading(false);
-    }
-  };
-
   if (!ready) return <main className="min-h-screen flex items-center justify-center text-inkSoft">Загрузка…</main>;
 
+  // HTML-код вашей формы
+  const iframeHtml = `
+    <div id="intellectmoney-payform" style="min-height: 550px; width: 100%;">
+      <iframe width="100%" height="100%" style="min-height: 550px; border: none;" frameBorder="0" src="https://merchant.intellectmoney.ru/v2/ru/prepareForm/?EshopId=473381&ServiceName=%D0%9F%D1%81%D0%B8%D1%85%D0%BE%D0%BB%D0%BE%D0%B3%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B8%D0%B9%20%D0%BE%D1%82%D1%87%D1%91%D1%82%20%D0%B4%D0%BB%D1%8F%20%D0%BF%D0%B0%D1%80%D1%8B&ServiceNameAuthor=0&PaymentAmount=10&PaymentCurrency=RUB&PaymentAmountIsReadonly=false&ButtonName=0&OpenNewWindow=true&UserFullName=&UserEmail=true&PhoneNumber=&SuccessUrl=https%3A%2F%2Fpara.layero.app%2Fresult&MerchantReceipt=&Comment=&CommentTip=&Hash=bb6caa1304e0d0479fa9e8676d396322&PayerData=&Email="></iframe>
+    </div>
+  `;
+
   return (
-    <main className="min-h-screen container-narrow py-16">
+    <main className="min-h-screen container-narrow py-12">
       <div className="card text-center animate-fadeUp">
         <div className="text-6xl mb-6">📄</div>
         <h1 className="font-serif text-3xl md:text-4xl mb-4">Анализ готов</h1>
-        <p className="text-inkSoft leading-relaxed mb-10 max-w-md mx-auto">
-          Мы обработали ответы обоих партнёров и подготовили персональный разбор.
-          Чтобы увидеть результат — оформите доступ.
+        <p className="text-inkSoft leading-relaxed mb-8 max-w-md mx-auto">
+          Мы обработали ответы обоих партнёров. Чтобы увидеть персональный разбор, оплатите доступ.
         </p>
 
-        <div className="bg-sand rounded-2xl p-6 mb-8 text-left space-y-3">
-          {[
-            'Совместимость по 7 сферам — с двух сторон',
-            'Ред-флаги и грин-флаги',
-            'Расхождения во взглядах — и что они значат',
-            'Персональные инсайты по вашим личным ответам',
-            'Рекомендации психолога и следующий шаг',
-          ].map((t) => (
-            <div key={t} className="flex items-start gap-3 text-ink">
-              <span className="w-5 h-5 rounded-full bg-sage/30 flex items-center justify-center text-sage text-xs shrink-0 mt-0.5">✓</span>
-              <span className="text-sm leading-relaxed">{t}</span>
-            </div>
-          ))}
+        {/* Блок с формой оплаты */}
+        <div 
+          className="w-full bg-white rounded-2xl overflow-hidden border border-ink/10 shadow-sm" 
+          dangerouslySetInnerHTML={{ __html: iframeHtml }} 
+        />
+        
+        {/* Кнопка возврата на случай, если оплата открылась в новой вкладке */}
+        <div className="mt-8">
+          <button 
+            onClick={() => router.push('/result')} 
+            className="text-sm text-clay hover:text-terra hover:underline transition-colors"
+          >
+            Я уже оплатил(а) — перейти к отчёту →
+          </button>
         </div>
-
-        <div className="text-4xl font-serif mb-6">199 ₽</div>
-
-        <button onClick={pay} disabled={loading} className="btn-primary w-full mb-4">
-          {loading ? 'Переходим к оплате…' : 'Оплатить и увидеть разбор'}
-        </button>
-        <p className="text-xs text-inkSoft">
-          Безопасная оплата через ЮKassa · чек придёт на email
-        </p>
-        {error && <p className="text-danger mt-4 text-sm">{error}</p>}
       </div>
     </main>
   );
