@@ -2,13 +2,13 @@ import Link from 'next/link';
 
 export default function Home() {
   return (
-    <main className="min-h-screen">
-      <nav className="container-wide flex items-center justify-between py-6 relative z-10">
+    <main className="min-h-screen relative z-10">
+      <nav className="container-wide flex items-center justify-between py-6">
         <span className="font-serif text-2xl tracking-tight">пара<span className="text-terra">.</span></span>
         <Link href="/quiz" className="text-sm text-inkSoft hover:text-terra transition-colors">Начать →</Link>
       </nav>
 
-      <section className="container-narrow text-center pt-20 pb-24 relative z-10">
+      <section className="container-narrow text-center pt-20 pb-24 relative">
         <div className="inline-flex items-center gap-2 text-xs uppercase tracking-widest text-inkSoft bg-white/50 backdrop-blur-sm rounded-full px-4 py-1.5 mb-8 border border-white/80 shadow-sm">
           <span className="w-1.5 h-1.5 rounded-full bg-terra" />
           Психология отношений
@@ -25,7 +25,7 @@ export default function Home() {
         </p>
         
         <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
-          <Link href="/quiz" className="btn-primary text-lg px-10 py-5">
+          <Link href="/quiz" className="btn-primary text-lg px-10 py-5 hover:scale-[1.02]">
             Пройти тест
           </Link>
           <span className="text-sm text-inkSoft italic font-serif">двое · ~15 минут на обоих</span>
@@ -65,8 +65,9 @@ export default function Home() {
         <div className="container-wide py-10 flex flex-col md:flex-row justify-between gap-4 text-sm text-inkSoft">
           <span>© {new Date().getFullYear()} пара. Сервис не заменяет консультацию психолога.</span>
           <div className="flex gap-6">
-            <a href="#" className="hover:text-terra transition-colors">Политика конфиденциальности</a>
-            <a href="#" className="hover:text-terra transition-colors">Оферта</a>
+            {/* Исправленные ссылки через компонент Link */}
+            <Link href="/privacy" className="hover:text-terra transition-colors">Политика конфиденциальности</Link>
+            <Link href="/offer" className="hover:text-terra transition-colors">Оферта</Link>
           </div>
         </div>
       </footer>
