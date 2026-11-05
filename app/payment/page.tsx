@@ -22,13 +22,7 @@ export default function PaymentPage() {
     setReady(true);
   }, [router]);
 
-  const goToMockResult = () => {
-    const mockId = 'MOCK_BYPASS_' + Date.now();
-    localStorage.setItem('para_payment_id', mockId);
-    router.push(`/result?paymentId=${mockId}`);
-  };
-
-  if (!ready) return <main className="min-h-screen flex items-center justify-center text-inkSoft">Загрузка…</main>;
+  if (!ready) return <main className="min-h-screen flex items-center justify-center text-inkSoft bg-romantic-glow">Загрузка…</main>;
 
   const iframeHtml = `
     <div id="intellectmoney-payform" style="min-height: 550px; width: 100%;">
@@ -37,29 +31,20 @@ export default function PaymentPage() {
   `;
 
   return (
-    <main className="min-h-screen container-narrow py-16 relative z-10">
-      <div className="card text-center animate-fadeUp max-w-2xl mx-auto">
+    <main className="min-h-screen container-narrow py-16 relative z-10 flex flex-col justify-center">
+      <div className="card text-center animate-fadeUp max-w-2xl mx-auto w-full">
         <div className="absolute top-0 right-0 w-64 h-64 bg-blush/30 rounded-full blur-3xl -z-10" />
         
-        <div className="text-6xl mb-6 animate-float">📄</div>
+        <div className="text-6xl mb-6 animate-float">💌</div>
         <h1 className="font-serif text-3xl md:text-4xl mb-4">Ваш разбор <span className="italic text-terra">почти готов</span></h1>
         <p className="text-inkSoft leading-relaxed mb-8 max-w-md mx-auto">
           Мы бережно объединили ответы обоих партнёров. Чтобы открыть персональное послание для вашей пары, подтвердите доступ.
         </p>
 
         <div 
-          className="w-full bg-white/90 rounded-2xl overflow-hidden border border-white/50 shadow-inner-soft" 
+          className="w-full bg-white/90 rounded-2xl overflow-hidden border border-white/50 shadow-inner-soft relative" 
           dangerouslySetInnerHTML={{ __html: iframeHtml }} 
         />
-
-        <div className="mt-10 pt-6 border-t border-ink/10">
-          <button 
-            onClick={goToMockResult}
-            className="text-sm text-inkSoft hover:text-terra transition-colors flex items-center justify-center gap-2 mx-auto italic font-serif"
-          >
-            🧪 Тестовый доступ: посмотреть результат бесплатно
-          </button>
-        </div>
       </div>
     </main>
   );

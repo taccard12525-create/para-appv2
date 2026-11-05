@@ -86,7 +86,7 @@ export default function QuizPage() {
             <div className="flex gap-3 items-center"><span className="text-terra text-lg">✦</span><span>В конце есть вопросы, где можно писать свободно</span></div>
           </div>
           
-          <button onClick={() => setPhase('quiz')} className="btn-primary w-full text-lg">
+          <button onClick={() => setPhase('quiz')} className="btn-primary w-full text-lg hover:scale-[1.02]">
             Начать · Партнёр 1
           </button>
         </div>
@@ -106,11 +106,11 @@ export default function QuizPage() {
           <h1 className="font-serif text-4xl md:text-5xl leading-tight mb-6">Спасибо</h1>
           
           <p className="text-inkSoft text-lg leading-relaxed mb-10">
-            Теперь передайте устройство тому, кого <span className="italic text-terra">любите</span>.<br/>
+            Теперь передайте устройство тому, кого <span className="italic text-terra font-medium">любите</span>.<br/>
             Ему предстоит ответить на те же вопросы — но уже со своей стороны.
           </p>
           
-          <button onClick={startPartner2} className="btn-primary w-full text-lg">
+          <button onClick={startPartner2} className="btn-primary w-full text-lg hover:scale-[1.02]">
             Партнёр 2 готов →
           </button>
         </div>
@@ -129,7 +129,7 @@ export default function QuizPage() {
             Сейчас мы объединим ваши ответы, найдём совпадения и расхождения,
             и подготовим персональный разбор для вас двоих.
           </p>
-          <button onClick={() => router.push('/payment')} className="btn-primary w-full">
+          <button onClick={() => router.push('/payment')} className="btn-primary w-full hover:scale-[1.02]">
             Перейти к анализу
           </button>
         </div>
@@ -152,8 +152,13 @@ export default function QuizPage() {
       </div>
 
       <div className="container-narrow pb-6">
-        <div className="progress-track bg-white/50"><div className="progress-fill" style={{ width: `${progress}%` }} /></div>
-        <div className="flex justify-between text-xs text-inkSoft mt-2">
+        <div className="progress-track bg-white/50 relative overflow-visible">
+            <div className="progress-fill relative" style={{ width: `${progress}%` }}>
+                {/* Светящийся кончик прогресс-бара */}
+                <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full shadow-[0_0_10px_rgba(209,126,107,0.8)] border-2 border-terra" />
+            </div>
+        </div>
+        <div className="flex justify-between text-xs text-inkSoft mt-2 font-medium">
           <span>{isOpen ? 'Личные размышления' : 'Ваши отношения'}</span>
           <span>{index + 1} / {total}</span>
         </div>
@@ -181,10 +186,10 @@ export default function QuizPage() {
                 <button
                   key={v}
                   onClick={() => setClosed({ ...closed, [q.id]: v })}
-                  className={`w-full text-left px-6 py-4 rounded-2xl border transition-all ${
+                  className={`w-full text-left px-6 py-4 rounded-2xl border transition-all duration-300 ${
                     closed[q.id] === v
-                      ? 'border-ink bg-ink text-cream shadow-md scale-[1.01]'
-                      : 'border-white/60 bg-white/60 backdrop-blur-sm hover:border-terra/50 hover:bg-white hover:shadow-sm'
+                      ? 'border-terra bg-terra text-white shadow-[0_8px_20px_-8px_rgba(209,126,107,0.6)] scale-[1.02]'
+                      : 'border-white/60 bg-white/60 backdrop-blur-sm hover:border-terra/50 hover:bg-white hover:shadow-md'
                   }`}
                 >
                   {l}
@@ -199,10 +204,10 @@ export default function QuizPage() {
                 <button
                   key={o.label}
                   onClick={() => setClosed({ ...closed, [q.id]: o.value })}
-                  className={`w-full text-left px-6 py-4 rounded-2xl border transition-all ${
+                  className={`w-full text-left px-6 py-4 rounded-2xl border transition-all duration-300 ${
                     closed[q.id] === o.value
-                      ? 'border-ink bg-ink text-cream shadow-md scale-[1.01]'
-                      : 'border-white/60 bg-white/60 backdrop-blur-sm hover:border-terra/50 hover:bg-white hover:shadow-sm'
+                      ? 'border-terra bg-terra text-white shadow-[0_8px_20px_-8px_rgba(209,126,107,0.6)] scale-[1.02]'
+                      : 'border-white/60 bg-white/60 backdrop-blur-sm hover:border-terra/50 hover:bg-white hover:shadow-md'
                   }`}
                 >
                   {o.label}
@@ -218,12 +223,12 @@ export default function QuizPage() {
                 onChange={(e) => setOpen({ ...open, [q.id]: e.target.value })}
                 placeholder="Пишите свободно. Это прочитает только нейросеть — и использует для вашего персонального разбора."
                 className="w-full bg-white/70 backdrop-blur-sm border border-white/80 rounded-2xl p-6 text-lg leading-relaxed
-                           focus:border-terra focus:ring-2 focus:ring-terra/20 outline-none transition-all min-h-[200px] resize-none shadow-sm"
+                           focus:border-terra focus:ring-4 focus:ring-terra/10 outline-none transition-all min-h-[200px] resize-none shadow-sm"
                 maxLength={1200}
               />
               <div className="flex justify-between text-xs text-inkSoft mt-2 px-1">
                 <span>Минимум 10 символов</span>
-                <span>{openCharCount} / 1200</span>
+                <span className={openCharCount >= 10 ? 'text-sage font-medium' : ''}>{openCharCount} / 1200</span>
               </div>
             </div>
           )}
@@ -231,7 +236,7 @@ export default function QuizPage() {
       </div>
 
       <div className="container-narrow py-8">
-        <button onClick={next} disabled={!canProceed()} className="btn-primary w-full">
+        <button onClick={next} disabled={!canProceed()} className="btn-primary w-full text-lg shadow-lg">
           {index + 1 === total ? 'Завершить' : 'Далее →'}
         </button>
       </div>
