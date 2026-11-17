@@ -12,10 +12,12 @@ export async function POST(req: NextRequest) {
       return new Response('Missing parameters', { status: 400 });
     }
 
-    // ЖЕСТКО ПРОПИСАННЫЙ ТЕСТОВЫЙ Пароль #2
-    const pass2 = 'jjSp87k1RUyN9U3hphWS';
+    const pass2 = process.env.ROBOKASSA_PASS2;
+    if (!pass2) {
+      return new Response('Password 2 not configured', { status: 500 });
+    }
 
-    // Проверяем подпись: MD5(OutSum:InvId:Пароль#2)
+    // В боевом режиме база для подписи: OutSum:InvId:Пароль#2
     const checkBase = `${outSum}:${invId}:${pass2}`;
     const expectedSignature = crypto.createHash('md5').update(checkBase).digest('hex');
 

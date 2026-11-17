@@ -3,11 +3,15 @@ import crypto from 'crypto';
 
 export async function POST(req: NextRequest) {
   try {
-    // ЖЕСТКО ПРОПИСАННЫЕ ДАННЫЕ (ТЕСТОВЫЙ РЕЖИМ)
-    const login = 'para';
-    const pass1 = 'VR4Eey1egmlm0komp5U1'; // ТЕСТОВЫЙ Пароль #1
-    const isTest = true; 
-    const baseUrl = 'https://para.layero.app';
+    const login = process.env.ROBOKASSA_LOGIN || 'para';
+    const pass1 = process.env.ROBOKASSA_PASS1;
+    // В боевом режиме isTest = false, поэтому параметр IsTest не передается
+    const isTest = false; 
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://para.layero.app';
+
+    if (!pass1) {
+      return NextResponse.json({ error: 'Пароль Robokassa #1 не настроен' }, { status: 500 });
+    }
 
     const invId = Date.now().toString();
     const outSum = '199.00';
@@ -26,16 +30,10 @@ export async function POST(req: NextRequest) {
       Culture: 'ru',
     });
 
-    if (isTest) {
-      searchParams.append('IsTest', '1');
-    }
-
+    // Параметр IsTest не добавляем для боевого режима
     const paymentUrl = `https://auth.robokassa.ru/Merchant/Index.aspx?${searchParams.toString()}`;
 
-    return NextResponse.json({ 
-      paymentUrl, 
-      paymentId: invId 
-    });
+    return NextResponse.json({ paymentUrl, paymentId: invId });
 
   } catch (e) {
     console.error('Ошибка создания платежа:', e);
