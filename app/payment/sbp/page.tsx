@@ -23,7 +23,6 @@ export default function SbpPage() {
         }
         const data = await res.json();
 
-        // Ждём, пока скрипт Robokassa загрузится
         if (!window.Robokassa) {
           throw new Error('Скрипт Robokassa не загружен. Попробуйте обновить страницу.');
         }
@@ -33,9 +32,10 @@ export default function SbpPage() {
             merchantLogin: data.login,
             outSum: data.outSum,
             invId: data.invId,
+            receipt: data.receipt, // передаём чек
+            email: data.email,     // передаём email
             signature: data.signature,
             paymentMethod: 'SBP',
-            email: 'customer@example.com', // Обязательный параметр
             qrContainerId: 'qr-container',
             qrContainerSize: 250,
             onpaymentlink: (link: string) => {
@@ -46,18 +46,14 @@ export default function SbpPage() {
           throw new Error('Контейнер для QR-кода не найден.');
         }
       } catch (err: any) {
-        console.error("Ошибка инициализации СБП:", err);
+        console.error('Ошибка инициализации СБП:', err);
         setError(err.message || 'Не удалось сгенерировать QR-код.');
       } finally {
         setLoading(false);
       }
     };
 
-    // Небольшая задержка, чтобы скрипт точно успел загрузиться
-    const timer = setTimeout(() => {
-      initSbp();
-    }, 1000);
-
+    const timer = setTimeout(initSbp, 1000);
     return () => clearTimeout(timer);
   }, []);
 
@@ -66,9 +62,7 @@ export default function SbpPage() {
       <div className="card text-center max-w-md w-full p-8">
         <h1 className="font-serif text-2xl mb-4">Оплата через СБП</h1>
         <p className="text-inkSoft mb-6">Отсканируйте QR-код в приложении банка</p>
-        
         <div id="qr-container" ref={qrRef} className="flex justify-center mb-6 min-h-[250px]"></div>
-        
         {loading && <p className="text-sm text-inkSoft animate-pulse">Генерация QR-кода...</p>}
         {error && <p className="text-sm text-danger mt-4">{error}</p>}
       </div>

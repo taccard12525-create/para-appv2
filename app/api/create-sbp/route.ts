@@ -5,16 +5,44 @@ export async function POST(req: NextRequest) {
   try {
     const login = process.env.ROBOKASSA_LOGIN || 'para';
     const pass1 = process.env.ROBOKASSA_PASS1;
-    if (!pass1) return NextResponse.json({ error: 'Пароль не настроен' }, { status: 500 });
+    if (!pass1) {
+      return NextResponse.json({ error: 'Пароль не настроен' }, { status: 500 });
+    }
 
     const invId = Date.now().toString();
     const outSum = 199.00;
-    // Подпись для СБП: MD5(merchantLogin:outSum:invId:Пароль#1)
-    const signatureBase = `${login}:${outSum}:${invId}:${pass1}`;
+    const email = 'test@test.ru';
+
+    // Формируем чек (Receipt) — обязателен для СБП
+    const receipt = {
+      sno: 'osn',
+      items: [
+        {
+          name: 'Психологический отчёт для пары',
+          quantity: 1,
+          sum: 199.00,
+          payment_method: 'full_payment',
+          payment_object: 'service',
+          tax: 'none',
+        },
+      ],
+    };
+
+    // Подпись: MD5(merchantLogin:outSum:invId:receipt:Пароль#1)
+    const receiptString = JSON.stringify(receipt);
+    const signatureBase = `${login}:${outSum}:${invId}:${receiptString}:${pass1}`;
     const signature = crypto.createHash('md5').update(signatureBase).digest('hex');
 
-    return NextResponse.json({ login, outSum, invId, signature });
+    return NextResponse.json({
+      login,
+      outSum,
+      invId,
+      receipt: receiptString,
+      email,
+      signature,
+    });
   } catch (e) {
+    console.error('Ошибка создания СБП:', e);
     return NextResponse.json({ error: 'Ошибка' }, { status: 500 });
   }
 }
