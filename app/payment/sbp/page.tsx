@@ -2,8 +2,6 @@
 
 import { useEffect, useRef, useState } from 'react';
 
-// ОФИЦИАЛЬНОЕ ОБЪЯВЛЕНИЕ ТИПА ДЛЯ TYPESCRIPT
-// Это уберет ошибку "Property 'Robokassa' does not exist on type 'Window'"
 declare global {
   interface Window {
     Robokassa: any;
@@ -12,38 +10,53 @@ declare global {
 
 export default function SbpPage() {
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const qrRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const initSbp = async () => {
       try {
-        // Получаем подпись с сервера
         const res = await fetch('/api/create-sbp', { method: 'POST' });
+        if (!res.ok) {
+          const errData = await res.json();
+          throw new Error(errData.error || 'Ошибка при создании платежа');
+        }
         const data = await res.json();
 
-        if (window.Robokassa && qrRef.current) {
+        // Ждём, пока скрипт Robokassa загрузится
+        if (!window.Robokassa) {
+          throw new Error('Скрипт Robokassa не загружен. Попробуйте обновить страницу.');
+        }
+
+        if (qrRef.current) {
           window.Robokassa.pay.startOp({
             merchantLogin: data.login,
             outSum: data.outSum,
             invId: data.invId,
             signature: data.signature,
             paymentMethod: 'SBP',
+            email: 'customer@example.com', // Обязательный параметр
             qrContainerId: 'qr-container',
             qrContainerSize: 250,
-            onpaymentlink: (link: string) => console.log('Ссылка СБП:', link),
+            onpaymentlink: (link: string) => {
+              console.log('Ссылка на оплату СБП:', link);
+            },
           });
+        } else {
+          throw new Error('Контейнер для QR-кода не найден.');
         }
-      } catch (error) {
-        console.error("Ошибка инициализации СБП", error);
+      } catch (err: any) {
+        console.error("Ошибка инициализации СБП:", err);
+        setError(err.message || 'Не удалось сгенерировать QR-код.');
       } finally {
         setLoading(false);
       }
     };
-    
-    // Небольшая задержка, чтобы скрипт Robokassa точно успел загрузиться
+
+    // Небольшая задержка, чтобы скрипт точно успел загрузиться
     const timer = setTimeout(() => {
       initSbp();
-    }, 500);
+    }, 1000);
 
     return () => clearTimeout(timer);
   }, []);
@@ -54,10 +67,10 @@ export default function SbpPage() {
         <h1 className="font-serif text-2xl mb-4">Оплата через СБП</h1>
         <p className="text-inkSoft mb-6">Отсканируйте QR-код в приложении банка</p>
         
-        {/* Контейнер для QR-кода */}
         <div id="qr-container" ref={qrRef} className="flex justify-center mb-6 min-h-[250px]"></div>
         
         {loading && <p className="text-sm text-inkSoft animate-pulse">Генерация QR-кода...</p>}
+        {error && <p className="text-sm text-danger mt-4">{error}</p>}
       </div>
     </main>
   );
