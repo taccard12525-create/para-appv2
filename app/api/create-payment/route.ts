@@ -3,69 +3,48 @@ import crypto from 'crypto';
 
 export async function POST(req: NextRequest) {
   try {
-    // 🔥 УМНОЕ ОПРЕДЕЛЕНИЕ ДОМЕНА
-    // Берем домен прямо из заголовков запроса, на котором запущен сайт
-    const host = req.headers.get('host') || 'localhost:3000';
-    const protocol = req.headers.get('x-forwarded-proto') || (host.includes('localhost') ? 'http' : 'https');
-    const baseUrl = `${protocol}://${host}`;
+    const login = process.env.ROBOKASSA_LOGIN || 'para';
+    const pass1 = process.env.ROBOKASSA_PASS1;
+    const isTest = process.env.ROBOKASSA_TEST_MODE === 'true';
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://para.layero.app';
 
-    // === MOCK-режим: имитация успешной оплаты для тестов ===
-    if (process.env.MOCK_MODE === 'true') {
-      const mockId = 'MOCK_' + Date.now();
-      return NextResponse.json({
-        // Теперь ссылка всегда будет правильной: https://ваш-домен/result...
-        confirmationUrl: `${baseUrl}/result?paymentId=${mockId}`,
-        paymentId: mockId,
-      });
+    if (!pass1) {
+      return NextResponse.json({ error: 'Пароль Robokassa #1 не настроен' }, { status: 500 });
     }
 
-    const shopId = process.env.YOOKASSA_SHOP_ID;
-    const secretKey = process.env.YOOKASSA_SECRET_KEY;
-    
-    if (!shopId || !secretKey) {
-      console.error('❌ YOOKASSA_SHOP_ID или YOOKASSA_SECRET_KEY не заданы');
-      return NextResponse.json(
-        { error: 'ЮKassa не настроена' },
-        { status: 500 },
-      );
-    }
+    // Уникальный номер заказа (используем время)
+    const invId = Date.now().toString();
+    const outSum = '199.00';
+    const description = 'Психологический отчёт для пары';
 
-    const res = await fetch('https://api.yookassa.ru/v3/payments', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Idempotence-Key': crypto.randomUUID(),
-        Authorization:
-          'Basic ' + Buffer.from(`${shopId}:${secretKey}`).toString('base64'),
-      },
-      body: JSON.stringify({
-        amount: { value: '199.00', currency: 'RUB' },
-        capture: true,
-        confirmation: {
-          type: 'redirect',
-          return_url: `${baseUrl}/result`, // Тоже используем умный URL
-        },
-        description: 'Психологический отчёт для пары',
-      }),
+    // Формируем подпись (SignatureValue): MD5(MerchantLogin:OutSum:InvId:Пароль#1)
+    const signatureBase = `${login}:${outSum}:${invId}:${pass1}`;
+    const signatureValue = crypto.createHash('md5').update(signatureBase).digest('hex');
+
+    // Собираем URL для редиректа на оплату
+    const searchParams = new URLSearchParams({
+      MerchantLogin: login,
+      OutSum: outSum,
+      InvId: invId,
+      Description: description,
+      SignatureValue: signatureValue,
+      Culture: 'ru',
     });
 
-    if (!res.ok) {
-      const errorBody = await res.text();
-      console.error('❌ YooKassa API error. Status:', res.status);
-      console.error('❌ Response body:', errorBody);
-      return NextResponse.json(
-        { error: 'Ошибка платёжной системы', details: errorBody },
-        { status: 500 },
-      );
+    // Если тестовый режим, добавляем обязательный параметр IsTest=1
+    if (isTest) {
+      searchParams.append('IsTest', '1');
     }
 
-    const payment = await res.json();
-    return NextResponse.json({
-      confirmationUrl: payment.confirmation.confirmation_url,
-      paymentId: payment.id,
+    const paymentUrl = `https://auth.robokassa.ru/Merchant/Index.aspx?${searchParams.toString()}`;
+
+    return NextResponse.json({ 
+      paymentUrl, 
+      paymentId: invId 
     });
+
   } catch (e) {
-    console.error('❌ create-payment fatal error:', e);
+    console.error('Ошибка создания платежа:', e);
     return NextResponse.json({ error: 'Внутренняя ошибка' }, { status: 500 });
   }
 }

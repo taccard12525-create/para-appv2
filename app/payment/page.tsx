@@ -6,8 +6,11 @@ import { useRouter } from 'next/navigation';
 export default function PaymentPage() {
   const router = useRouter();
   const [ready, setReady] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // Проверяем, прошел ли пользователь тест
     const p1 = localStorage.getItem('para_p1');
     const p2 = localStorage.getItem('para_p2');
     
@@ -15,21 +18,42 @@ export default function PaymentPage() {
       router.replace('/quiz'); 
       return; 
     }
-
-    const tempId = 'PAY_' + Date.now();
-    localStorage.setItem('para_payment_id', tempId);
     
     setReady(true);
   }, [router]);
 
-  if (!ready) return <main className="min-h-screen flex items-center justify-center text-inkSoft bg-romantic-glow">Загрузка…</main>;
+  const handlePay = async () => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      // Запрашиваем у сервера ссылку на оплату
+      const res = await fetch('/api/create-payment', { method: 'POST' });
+      const data = await res.json();
+      
+      if (!res.ok) {
+        throw new Error(data.error || 'Ошибка создания платежа');
+      }
 
-  // ВОЗВРАЩЕН ОРИГИНАЛЬНЫЙ КОД С СУММОЙ 10 РУБЛЕЙ И СТАРЫМ ХЭШЕМ
-  const iframeHtml = `
-    <div id="intellectmoney-payform" style="min-height: 550px; width: 100%;">
-      <iframe width="100%" height="100%" style="min-height: 550px; border: none;" frameBorder="0" src="https://merchant.intellectmoney.ru/v2/ru/prepareForm/?EshopId=473381&ServiceName=%D0%9F%D1%81%D0%B8%D1%85%D0%BE%D0%BB%D0%BE%D0%B3%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B8%D0%B9%20%D0%BE%D1%82%D1%87%D1%91%D1%82%20%D0%B4%D0%BB%D1%8F%20%D0%BF%D0%B0%D1%80%D1%8B&ServiceNameAuthor=0&PaymentAmount=10&PaymentCurrency=RUB&PaymentAmountIsReadonly=false&ButtonName=0&OpenNewWindow=true&UserFullName=&UserEmail=true&PhoneNumber=&SuccessUrl=https%3A%2F%2Fpara.layero.app%2Fresult&MerchantReceipt=&Comment=&CommentTip=&Hash=bb6caa1304e0d0479fa9e8676d396322&PayerData=&Email="></iframe>
-    </div>
-  `;
+      // Сохраняем ID платежа для страницы результатов
+      localStorage.setItem('para_payment_id', data.paymentId);
+      
+      // Перекидываем пользователя на страницу оплаты Robokassa
+      window.location.href = data.paymentUrl;
+    } catch (e: any) {
+      setError(e.message || 'Что-то пошло не так. Попробуйте еще раз.');
+      setLoading(false);
+    }
+  };
+
+  // Пока идет проверка данных, показываем экран загрузки
+  if (!ready) {
+    return (
+      <main className="min-h-screen flex items-center justify-center text-inkSoft bg-romantic-glow">
+        Загрузка…
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen container-narrow py-16 relative z-10 flex flex-col justify-center">
@@ -37,15 +61,32 @@ export default function PaymentPage() {
         <div className="absolute top-0 right-0 w-64 h-64 bg-blush/30 rounded-full blur-3xl -z-10" />
         
         <div className="text-6xl mb-6 animate-float">💌</div>
-        <h1 className="font-serif text-3xl md:text-4xl mb-4">Ваш разбор <span className="italic text-terra">почти готов</span></h1>
+        <h1 className="font-serif text-3xl md:text-4xl mb-4">
+          Ваш разбор <span className="italic text-terra">почти готов</span>
+        </h1>
         <p className="text-inkSoft leading-relaxed mb-8 max-w-md mx-auto">
           Мы бережно объединили ответы обоих партнёров. Чтобы открыть персональное послание для вашей пары, подтвердите доступ.
         </p>
 
-        <div 
-          className="w-full bg-white/90 rounded-2xl overflow-hidden border border-white/50 shadow-inner-soft relative" 
-          dangerouslySetInnerHTML={{ __html: iframeHtml }} 
-        />
+        <div className="bg-sand/50 rounded-2xl p-6 mb-8 border border-white">
+            <div className="text-4xl font-serif mb-2">199 ₽</div>
+            <div className="text-sm text-inkSoft">Полный психологический разбор</div>
+        </div>
+
+        <button 
+          onClick={handlePay} 
+          disabled={loading} 
+          className="btn-primary w-full text-lg shadow-lg"
+        >
+          {loading ? 'Переходим к оплате…' : 'Оплатить и увидеть разбор'}
+        </button>
+        
+        <p className="text-xs text-inkSoft mt-4">
+          Безопасная оплата через Robokassa · чек придёт на email
+        </p>
+        
+        {/* Блок для вывода ошибки, если что-то пойдет не так */}
+        {error && <p className="text-danger mt-4 text-sm font-medium">{error}</p>}
       </div>
     </main>
   );
