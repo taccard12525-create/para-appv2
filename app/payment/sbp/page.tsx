@@ -2,6 +2,14 @@
 
 import { useEffect, useRef, useState } from 'react';
 
+// ОФИЦИАЛЬНОЕ ОБЪЯВЛЕНИЕ ТИПА ДЛЯ TYPESCRIPT
+// Это уберет ошибку "Property 'Robokassa' does not exist on type 'Window'"
+declare global {
+  interface Window {
+    Robokassa: any;
+  }
+}
+
 export default function SbpPage() {
   const [loading, setLoading] = useState(true);
   const qrRef = useRef<HTMLDivElement>(null);
@@ -13,11 +21,8 @@ export default function SbpPage() {
         const res = await fetch('/api/create-sbp', { method: 'POST' });
         const data = await res.json();
 
-        // ИСПОЛЬЗУЕМ (window as any), ЧТОБЫ TYPESCRIPT НЕ РУГАЛСЯ
-        const Robokassa = (window as any).Robokassa;
-
-        if (Robokassa && qrRef.current) {
-          Robokassa.pay.startOp({
+        if (window.Robokassa && qrRef.current) {
+          window.Robokassa.pay.startOp({
             merchantLogin: data.login,
             outSum: data.outSum,
             invId: data.invId,
