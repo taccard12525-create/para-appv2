@@ -28,8 +28,10 @@ export async function POST(req: NextRequest) {
       ],
     };
 
-    // Подпись: MD5(merchantLogin:outSum:invId:receipt:Пароль#1)
+    // receipt для подписи и для передачи в startOp должен быть строкой
     const receiptString = JSON.stringify(receipt);
+
+    // Подпись: MD5(merchantLogin:outSum:invId:receipt:Пароль#1)
     const signatureBase = `${login}:${outSum}:${invId}:${receiptString}:${pass1}`;
     const signature = crypto.createHash('md5').update(signatureBase).digest('hex');
 
@@ -37,7 +39,7 @@ export async function POST(req: NextRequest) {
       login,
       outSum,
       invId,
-      receipt: receiptString,
+      receipt: receiptString, // передаем строку
       email,
       signature,
     });

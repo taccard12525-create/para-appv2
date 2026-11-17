@@ -32,10 +32,11 @@ export default function SbpPage() {
             merchantLogin: data.login,
             outSum: data.outSum,
             invId: data.invId,
-            receipt: data.receipt, // передаём чек
-            email: data.email,     // передаём email
+            receipt: data.receipt, // строка JSON
+            email: data.email,
             signature: data.signature,
             paymentMethod: 'SBP',
+            IncCurrLabel: 'SBP',
             qrContainerId: 'qr-container',
             qrContainerSize: 250,
             onpaymentlink: (link: string) => {
