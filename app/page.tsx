@@ -1,8 +1,11 @@
 import Link from 'next/link';
+import { JsonLd } from './json-ld';
 
 export default function Home() {
   return (
     <main className="min-h-screen relative z-10">
+      <JsonLd />
+      
       <nav className="container-wide flex items-center justify-between py-6">
         <span className="font-serif text-2xl tracking-tight">пара<span className="text-terra">.</span></span>
         <Link href="/quiz" className="text-sm text-inkSoft hover:text-terra transition-colors">Начать →</Link>
@@ -40,7 +43,7 @@ export default function Home() {
         ].map((f) => (
           <div key={f.t} className="card hover:-translate-y-1 transition-transform duration-300">
             <div className="absolute top-0 right-0 w-32 h-32 bg-blush/20 rounded-bl-full -z-10" />
-            <h3 className="font-serif text-2xl mb-3">{f.t}</h3>
+            <h2 className="font-serif text-2xl mb-3">{f.t}</h2>
             <p className="text-inkSoft leading-relaxed">{f.d}</p>
           </div>
         ))}
@@ -65,7 +68,6 @@ export default function Home() {
         <div className="container-wide py-10 flex flex-col md:flex-row justify-between gap-4 text-sm text-inkSoft">
           <span>© {new Date().getFullYear()} пара. Сервис не заменяет консультацию психолога.</span>
           <div className="flex gap-6">
-            {/* Исправленные ссылки через компонент Link */}
             <Link href="/privacy" className="hover:text-terra transition-colors">Политика конфиденциальности</Link>
             <Link href="/offer" className="hover:text-terra transition-colors">Оферта</Link>
           </div>
